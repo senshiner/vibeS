@@ -3,7 +3,9 @@ export interface MusicTrack {
   title: string;
   artist: string;
   coverUrl: string;
-  spotifyUrl: string; // URL track Spotify (bisa dari share link)
+  url: string;          // link sumber (YouTube/Spotify)
+  source: 'youtube' | 'spotify';
+  audioUrl?: string;    // hasil download (akan diisi saat diputar)
 }
 
 export interface UserData {
