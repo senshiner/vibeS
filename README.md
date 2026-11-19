@@ -1,7 +1,6 @@
 # vibeS — Ruang Tenang
 
-Web penenang universal. Bukan web ulang tahun, bukan kado untuk seseorang.
-Siapa saja bisa masuk, duduk sebentar, dan merasa sedikit lebih lega.
+Web penenang universal. Siapa saja bisa masuk dan duduk sebentar.
 
 ## Yang ada di dalamnya
 
@@ -12,18 +11,20 @@ Siapa saja bisa masuk, duduk sebentar, dan merasa sedikit lebih lega.
   Favorit disimpan di browser sebagai metadata saja. Link audio tidak pernah
   disimpan, karena bisa kedaluwarsa, jadi audio selalu diminta ulang saat
   diputar. Kartu player ala tren foto Spotify: cover, judul, artis, progress
-  bar, dan tombol putar.
+  bar, dan tombol putar. Kalau layanan utama tidak bisa dijangkau, pencarian
+  memakai iTunes Search API sebagai cadangan dan memutar preview 30 detik
+  (ditandai "Preview 30 detik" di kartu).
 - **Photo Book** — halaman ala polaroid dari foto pengguna sendiri. Foto
   tampil mengikuti rasio aslinya, tidak pernah di-crop. Kartu musik di atas
   halaman bisa digeser dengan mouse maupun sentuhan, supaya pengguna sendiri
   yang menaruhnya di tempat yang tidak menutupi subjek.
 - **Teman** — pendamping suportif untuk saat hari terasa berat. Berjalan tanpa
-  API AI eksternal: balasan berbasis pola kata, reflective listening, dan
-  saran lembut (latihan napas, lagu favorit, foto favorit). Termasuk latihan
-  napas terpandu (tarik 4, tahan 4, buang 6). Teman bukan terapis atau tenaga
-  medis, dan itu tertulis jelas di halaman. Kalau pengguna mengungkapkan
-  pikiran menyakiti diri, kartu bantuan krisis tampil menonjol: 119 ext 8
-  (Healing119, Kemenkes, gratis, 24 jam) dan healing119.id.
+  API AI eksternal: balasan berbasis pola kata dan saran lembut (latihan
+  napas, lagu favorit, foto favorit). Termasuk latihan napas terpandu (tarik
+  4, tahan 4, buang 6). Teman bukan terapis atau tenaga medis, dan itu
+  tertulis jelas di halaman. Kalau pengguna mengungkapkan pikiran menyakiti
+  diri, kartu bantuan krisis tampil menonjol: 119 ext 8 (Healing119,
+  Kemenkes, gratis, 24 jam) dan healing119.id.
 
 ## Menjalankan
 
@@ -39,7 +40,10 @@ npm start       # jalankan hasil build
 - Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + Zustand.
 - `app/api/music/route.ts` — route server yang memanggil API Delirius
   (tidak resmi) untuk mencari dan mengambil audio, sumber YouTube (default)
-  atau Spotify. Route ini dipertahankan apa adanya.
+  atau Spotify. Kalau Delirius gagal atau kosong, route memakai iTunes
+  Search API sebagai cadangan (preview 30 detik, cover 600x600) dan
+  membedakan layanan yang tidak bisa dijangkau (503) dari memang tidak ada
+  hasil (404).
 - `lib/audio.ts` — satu elemen audio untuk seluruh aplikasi, jadi lagu terus
   berjalan saat pindah halaman.
 - `store/musicStore.ts` — favorit, persisten di localStorage
@@ -52,8 +56,10 @@ npm start       # jalankan hasil build
 ## Batasan yang jujur
 
 - **API musik tidak resmi.** Delirius bukan API resmi Spotify atau YouTube.
-  Layanan ini bisa berubah atau mati sewaktu-waktu. Kalau pencarian gagal,
-  aplikasi menampilkan pesan yang jelas, bukan diam.
+  Layanan ini bisa berubah atau mati sewaktu-waktu. Kalau Delirius tidak
+  bisa dijangkau, pencarian memakai iTunes Search API dan memutar preview
+  30 detik. Kalau kedua layanan gagal, aplikasi menampilkan pesan yang
+  jelas, bukan diam.
 - **Foto hanya ada di browser ini.** Tidak ada sinkronisasi antar perangkat,
   dan foto hilang kalau data situs dihapus.
 - **Teman itu scripted, bukan AI sungguhan.** Balasannya dari pola kata yang

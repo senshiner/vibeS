@@ -13,7 +13,7 @@ interface SearchResult {
   artist: string;
   coverUrl: string;
   url: string;
-  source: Source;
+  source: 'youtube' | 'spotify' | 'itunes';
   audioUrl: string;
 }
 
@@ -76,12 +76,20 @@ export function MusicSection() {
     setSearchError('');
     setSearched(true);
     try {
+      // Bedakan layanan yang tidak bisa dijangkau (5xx / gagal fetch)
+      // dari memang tidak ada hasil (404). Jangan pernah menampilkan
+      // "tidak ada hasil" saat yang gagal adalah layanannya.
+      let sawUnreachable = false;
       const found = await Promise.all(
         [0, 1, 2, 3, 4].map(async (index): Promise<MusicTrack | null> => {
           try {
             const res = await fetch(
               `/api/music?q=${encodeURIComponent(q)}&source=${source}&index=${index}`,
             );
+            if (res.status >= 500) {
+              sawUnreachable = true;
+              return null;
+            }
             if (!res.ok) return null;
             const data = (await res.json()) as SearchResult;
             if (!data.url) return null;
@@ -95,6 +103,7 @@ export function MusicSection() {
               audioUrl: data.audioUrl,
             } satisfies MusicTrack;
           } catch {
+            sawUnreachable = true;
             return null;
           }
         }),
@@ -104,10 +113,14 @@ export function MusicSection() {
       );
       setResults(unique);
       if (unique.length === 0) {
-        setSearchError('Tidak ada hasil. Coba kata kunci lain, atau ganti sumber.');
+        setSearchError(
+          sawUnreachable
+            ? 'Layanan musik tidak bisa dijangkau. Coba lagi nanti.'
+            : 'Tidak ada hasil. Coba kata kunci lain.',
+        );
       }
     } catch {
-      setSearchError('Pencarian gagal. Layanan musik sedang tidak bisa dijangkau, coba lagi nanti.');
+      setSearchError('Layanan musik tidak bisa dijangkau. Coba lagi nanti.');
     } finally {
       setSearching(false);
     }
@@ -126,10 +139,6 @@ export function MusicSection() {
     <div className="space-y-8">
       <header>
         <h1 className="text-2xl font-light tracking-wide text-[#ece7db]">Musik</h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#a7b8c4]">
-          Cari lagu yang menenangkan, putar, lalu simpan yang kamu suka ke favorit.
-          Favoritmu tersimpan di browser ini.
-        </p>
       </header>
 
       <PlayerCard
@@ -155,8 +164,8 @@ export function MusicSection() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void handleSearch()}
-            placeholder="Cari judul lagu atau artis..."
-            aria-label="Cari judul lagu atau artis"
+            placeholder="Cari judul lagu..."
+            aria-label="Cari judul lagu"
             className="min-w-0 flex-1 rounded-full border border-white/15 bg-white/[0.06] px-5 py-3 text-sm text-[#ece7db] placeholder:text-[#a7b8c4]/60 focus:border-[#93b8a4]/60 focus:outline-none"
           />
           <button
@@ -230,8 +239,7 @@ export function MusicSection() {
         </h2>
         {favorites.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-white/15 p-5 text-sm leading-relaxed text-[#a7b8c4]">
-            Belum ada lagu favorit. Cari lagu di atas, lalu ketuk Simpan.
-            Favoritmu hanya tersimpan di browser ini.
+            Belum ada favorit. Cari lagu, lalu Simpan.
           </p>
         ) : (
           <ul className="space-y-2">

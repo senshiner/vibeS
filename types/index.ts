@@ -3,8 +3,8 @@ export interface MusicTrack {
   title: string;
   artist: string;
   coverUrl: string;
-  url: string; // link sumber (YouTube/Spotify)
-  source: 'youtube' | 'spotify';
+  url: string; // link sumber (YouTube/Spotify) atau lookup iTunes
+  source: 'youtube' | 'spotify' | 'itunes';
   audioUrl?: string; // hanya transit di memori, tidak pernah disimpan
 }
 
@@ -20,7 +20,7 @@ export interface FavoriteTrack {
   artist: string;
   coverUrl: string;
   url: string;
-  source: 'youtube' | 'spotify';
+  source: 'youtube' | 'spotify' | 'itunes';
 }
 
 export interface PhotoItem {

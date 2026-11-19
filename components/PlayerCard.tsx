@@ -61,7 +61,7 @@ export function PlayerCard({
     <div className="rounded-3xl border border-white/10 bg-white/[0.07] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-md">
       {!track ? (
         <p className="py-6 text-center text-sm leading-relaxed text-[#a7b8c4]">
-          Belum ada lagu yang diputar. Cari lagu di bawah, atau buka favoritmu.
+          Pilih lagu dulu.
         </p>
       ) : (
         <div>
@@ -87,14 +87,18 @@ export function PlayerCard({
               <p className="truncate text-base font-medium text-[#ece7db]">{track.title}</p>
               <p className="mt-1 truncate text-sm text-[#a7b8c4]">{track.artist || 'Artis tidak diketahui'}</p>
               <p className="mt-2 text-xs text-[#a7b8c4]/70">
-                {track.source === 'youtube' ? 'Sumber: YouTube' : 'Sumber: Spotify'}
+                {track.source === 'itunes'
+                  ? 'Preview 30 detik'
+                  : track.source === 'youtube'
+                    ? 'YouTube'
+                    : 'Spotify'}
               </p>
               <button
                 type="button"
                 onClick={onToggleFavorite}
                 className="mt-3 rounded-full border border-white/15 px-3 py-1 text-xs text-[#ece7db] transition hover:border-white/35 hover:bg-white/10"
               >
-                {isFavorite ? 'Tersimpan di favorit' : 'Simpan ke favorit'}
+                {isFavorite ? 'Tersimpan' : 'Simpan'}
               </button>
             </div>
           </div>
