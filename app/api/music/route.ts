@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Gagal mendapatkan audio' }, { status: 500 });
       }
       return NextResponse.json({ audioUrl });
-    } catch (error: any) {
-      console.error('Download error:', error.message);
+    } catch (error: unknown) {
+      console.error('Download error:', error instanceof Error ? error.message : error);
       return NextResponse.json({ error: 'Gagal download' }, { status: 500 });
     }
   }
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       }
       const result = searchData.data[index] || searchData.data[0];
 
-      let title = result.title || '';
+      const title = result.title || '';
       let artist = '';
       let coverUrl = '';
       let url = '';
@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
         source,
         audioUrl,
       });
-    } catch (error: any) {
-      console.error('Search error:', error.message);
+    } catch (error: unknown) {
+      console.error('Search error:', error instanceof Error ? error.message : error);
       return NextResponse.json({ error: 'Terjadi kesalahan' }, { status: 500 });
     }
   }
