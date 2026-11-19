@@ -14,7 +14,7 @@ interface MusicPickerSheetProps {
 export const MusicPickerSheet = ({ onClose }: MusicPickerSheetProps) => {
   const { customTracks, addTrack, removeTrack, selectedTrackId, setSelectedTrack } =
     useMusicStore();
-  const { currentTrack, isPlaying, progress, duration, playTrack, togglePlay, syncState } =
+  const { isPlaying, progress, duration, playTrack, togglePlay, syncState } =
     useAudioPlayer();
 
   const [searchQuery, setSearchQuery] = useState('');

@@ -163,28 +163,6 @@ export const useAudioPlayer = () => {
     }
   }, [isPlaying]);
 
-  const pause = useCallback(() => {
-    const audio = audioInstance;
-    if (audio) {
-      audio.pause();
-    }
-  }, []);
-
-  const resume = useCallback(() => {
-    const audio = audioInstance;
-    if (audio && trackRef.current) {
-      audio.play();
-    }
-  }, []);
-
-  const seekTo = useCallback((seconds: number) => {
-    const audio = audioInstance;
-    if (audio) {
-      audio.currentTime = seconds;
-      setProgress(seconds);
-    }
-  }, []);
-
   return {
     currentTrack,
     isPlaying,
@@ -192,9 +170,6 @@ export const useAudioPlayer = () => {
     duration,
     playTrack,
     togglePlay,
-    pause,
-    resume,
-    seekTo,
     syncState,
   };
 };
