@@ -6,6 +6,7 @@ export interface MusicTrack {
   url: string; // link sumber (YouTube/Spotify) atau lookup iTunes
   source: 'youtube' | 'spotify' | 'itunes';
   audioUrl?: string; // hanya transit di memori, tidak pernah disimpan
+  preview?: boolean; // true kalau audio yang diputar hanya preview 30 detik
 }
 
 /**
@@ -21,6 +22,7 @@ export interface FavoriteTrack {
   coverUrl: string;
   url: string;
   source: 'youtube' | 'spotify' | 'itunes';
+  preview?: boolean; // diisi saat diputar, tidak pernah disimpan
 }
 
 export interface PhotoItem {

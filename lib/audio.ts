@@ -83,27 +83,27 @@ class AudioController {
   }
 
   /**
-   * Minta link audio segar ke /api/music. Coba sumber asli lagu dulu,
-   * lalu sumber satunya sebagai cadangan. Lagu preview iTunes hanya
-   * punya satu sumber: lookup iTunes.
+   * Minta link audio segar ke /api/music. Route mencoba download
+   * Delirius dulu (lagu full), lalu preview iTunes kalau gagal.
+   * Judul + artis dikirim supaya route bisa mencocokkan preview.
    */
-  private async resolveAudioUrl(track: PlayableTrack): Promise<string | null> {
-    const sources: Array<'youtube' | 'spotify' | 'itunes'> =
-      track.source === 'spotify'
-        ? ['spotify', 'youtube']
-        : track.source === 'itunes'
-          ? ['itunes']
-          : ['youtube', 'spotify'];
-    for (const source of sources) {
-      try {
-        const res = await fetch(
-          `/api/music?url=${encodeURIComponent(track.url)}&source=${source}`,
-        );
-        const data: { audioUrl?: string } = await res.json();
-        if (res.ok && data.audioUrl) return data.audioUrl;
-      } catch {
-        // lanjut ke sumber berikutnya
+  private async resolveAudioUrl(
+    track: PlayableTrack,
+  ): Promise<{ audioUrl: string; preview: boolean } | null> {
+    try {
+      const params = new URLSearchParams({
+        url: track.url,
+        source: track.source,
+        title: track.title,
+        artist: track.artist,
+      });
+      const res = await fetch(`/api/music?${params.toString()}`);
+      const data: { audioUrl?: string; preview?: boolean } = await res.json();
+      if (res.ok && data.audioUrl) {
+        return { audioUrl: data.audioUrl, preview: data.preview ?? false };
       }
+    } catch {
+      // jatuh ke null di bawah
     }
     return null;
   }
@@ -125,13 +125,18 @@ class AudioController {
     // Favorit tidak pernah menyimpan audioUrl, jadi selalu resolve ulang.
     // Hasil pencarian membawa audioUrl transit di memori dan boleh dipakai.
     let audioUrl = 'audioUrl' in track ? (track.audioUrl ?? null) : null;
-    if (!audioUrl) audioUrl = await this.resolveAudioUrl(track);
+    let preview = track.preview ?? false;
     if (!audioUrl) {
-      this.setState({
-        loading: false,
-        error: 'Lagu tidak bisa dimuat. Layanan musik sedang tidak bisa dijangkau.',
-      });
-      return;
+      const resolved = await this.resolveAudioUrl(track);
+      if (!resolved) {
+        this.setState({
+          loading: false,
+          error: 'Lagu tidak bisa dimuat. Layanan musik sedang tidak bisa dijangkau.',
+        });
+        return;
+      }
+      audioUrl = resolved.audioUrl;
+      preview = resolved.preview;
     }
 
     audio.src = audioUrl;
@@ -142,7 +147,7 @@ class AudioController {
       this.setState({ loading: false, error: 'Pemutaran diblokir browser. Ketuk tombol putar sekali lagi.' });
       return;
     }
-    this.setState({ current: track, progress: 0, loading: false, error: null });
+    this.setState({ current: { ...track, preview }, progress: 0, loading: false, error: null });
   }
 
   toggle() {

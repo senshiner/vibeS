@@ -2,20 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 const DELIRIUS_API = 'https://api.delirius.store';
+const NEXRAY_API = 'https://api.nexray.eu.cc';
 const ITUNES_SEARCH_API = 'https://itunes.apple.com/search';
 const ITUNES_LOOKUP_PREFIX = 'https://itunes.apple.com/lookup?id=';
 
 /**
- * Jalur utama: Delirius (tidak resmi) untuk lagu full, sumber YouTube
- * (default) atau Spotify. Jalur cadangan: iTunes Search API, yang
- * mengembalikan preview 30 detik. Delirius sudah terbukti tidak bisa
- * dijangkau dari beberapa jaringan, jadi tanpa cadangan pencarian
- * mengembalikan nol hasil dan pengguna mengira lagunya tidak ada.
+ * Pencarian utama: nexray Spotify search (metadata + cover asli).
+ * Delirius sudah tidak bisa dijangkau dari VM ini, jadi ia bukan
+ * lagi sumber pencarian. Audio: Delirius download dulu (lagu full),
+ * kalau gagal pakai preview iTunes 30 detik yang dicocokkan dari
+ * judul + artis. Cadangan pencarian terakhir: iTunes Search API.
  *
  * Pesan gagal dibedakan dengan jujur: layanan tidak bisa dijangkau
  * (503) vs memang tidak ada hasil (404). Jangan pernah membalas
  * "tidak ada hasil" saat yang gagal adalah layanannya.
  */
+
+interface NexrayResult {
+  title: string;
+  artist: string;
+  thumbnail?: string;
+  url: string;
+}
+
+interface NexrayTrack {
+  title: string;
+  artist: string;
+  coverUrl: string;
+  url: string;
+}
 
 interface ItunesApiResult {
   trackId: number;
@@ -35,14 +50,36 @@ interface ItunesTrack {
 }
 
 // Cache kecil (60 detik) supaya lima panggilan paralel untuk satu kata
-// kunci tidak menembak iTunes lima kali.
+// kunci tidak menembak API yang sama lima kali.
+const CACHE_TTL_MS = 60_000;
+const nexrayCache = new Map<string, { at: number; tracks: NexrayTrack[] }>();
 const itunesCache = new Map<string, { at: number; tracks: ItunesTrack[] }>();
-const ITUNES_CACHE_TTL_MS = 60_000;
+
+async function searchNexray(q: string): Promise<NexrayTrack[]> {
+  const key = q.trim().toLowerCase();
+  const cached = nexrayCache.get(key);
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.tracks;
+  const res = await axios.get(`${NEXRAY_API}/search/spotify`, {
+    params: { q },
+    timeout: 10_000,
+  });
+  const results: NexrayResult[] = res.data?.result ?? [];
+  const tracks = results
+    .filter((r) => r.title && r.url)
+    .map((r) => ({
+      title: r.title,
+      artist: r.artist || '',
+      coverUrl: r.thumbnail || '',
+      url: r.url,
+    }));
+  nexrayCache.set(key, { at: Date.now(), tracks });
+  return tracks;
+}
 
 async function searchItunes(q: string): Promise<ItunesTrack[]> {
   const key = q.trim().toLowerCase();
   const cached = itunesCache.get(key);
-  if (cached && Date.now() - cached.at < ITUNES_CACHE_TTL_MS) return cached.tracks;
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.tracks;
   const res = await axios.get(ITUNES_SEARCH_API, {
     params: { term: q, media: 'music', entity: 'song', limit: 5 },
     timeout: 10_000,
@@ -67,12 +104,36 @@ async function itunesPreviewUrl(lookupUrl: string): Promise<string | null> {
   return result?.previewUrl || null;
 }
 
+async function itunesPreviewFor(title: string, artist: string): Promise<string | null> {
+  const tracks = await searchItunes(`${title} ${artist}`.trim());
+  return tracks[0]?.audioUrl || null;
+}
+
+async function deliriusDownload(
+  url: string,
+  source: 'youtube' | 'spotify',
+): Promise<string | null> {
+  const downloadUrl =
+    source === 'spotify'
+      ? `${DELIRIUS_API}/download/spotifydl?url=${encodeURIComponent(url)}`
+      : `${DELIRIUS_API}/download/ytmp3?url=${encodeURIComponent(url)}`;
+  try {
+    const res = await axios.get(downloadUrl, { timeout: 15_000 });
+    return res.data.data?.download || null;
+  } catch (error: unknown) {
+    console.error('Delirius download error:', error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const q = searchParams.get('q');
   const urlParam = searchParams.get('url');
-  const source = searchParams.get('source') || 'youtube';
+  const source = searchParams.get('source') || 'spotify';
   const index = parseInt(searchParams.get('index') || '0', 10);
+  const title = searchParams.get('title') || '';
+  const artist = searchParams.get('artist') || '';
 
   if (urlParam) {
     // Lagu preview iTunes: audio di-resolve ulang dari lookup, karena
@@ -83,7 +144,7 @@ export async function GET(request: NextRequest) {
         if (!previewUrl) {
           return NextResponse.json({ error: 'Gagal mendapatkan audio' }, { status: 500 });
         }
-        return NextResponse.json({ audioUrl: previewUrl });
+        return NextResponse.json({ audioUrl: previewUrl, preview: true });
       } catch (error: unknown) {
         console.error('iTunes lookup error:', error instanceof Error ? error.message : error);
         return NextResponse.json(
@@ -92,80 +153,40 @@ export async function GET(request: NextRequest) {
         );
       }
     }
-    try {
-      let downloadUrl = '';
-      if (source === 'spotify') {
-        downloadUrl = `${DELIRIUS_API}/download/spotifydl?url=${encodeURIComponent(urlParam)}`;
-      } else {
-        downloadUrl = `${DELIRIUS_API}/download/ytmp3?url=${encodeURIComponent(urlParam)}`;
+
+    // Lagu full via Delirius dulu, preview iTunes kalau gagal.
+    const audioUrl = await deliriusDownload(
+      urlParam,
+      source === 'youtube' ? 'youtube' : 'spotify',
+    );
+    if (audioUrl) return NextResponse.json({ audioUrl, preview: false });
+    if (title && artist) {
+      try {
+        const previewUrl = await itunesPreviewFor(title, artist);
+        if (previewUrl) return NextResponse.json({ audioUrl: previewUrl, preview: true });
+      } catch (error: unknown) {
+        console.error('iTunes fallback error:', error instanceof Error ? error.message : error);
       }
-      const res = await axios.get(downloadUrl, { timeout: 15_000 });
-      const audioUrl = res.data.data?.download || '';
-      if (!audioUrl) {
-        return NextResponse.json({ error: 'Gagal mendapatkan audio' }, { status: 500 });
-      }
-      return NextResponse.json({ audioUrl });
-    } catch (error: unknown) {
-      console.error('Download error:', error instanceof Error ? error.message : error);
-      return NextResponse.json(
-        { error: 'Layanan musik tidak bisa dijangkau' },
-        { status: 503 },
-      );
     }
+    return NextResponse.json(
+      { error: 'Layanan musik tidak bisa dijangkau' },
+      { status: 503 },
+    );
   }
 
   if (q) {
-    let deliriusFailed = false;
+    // Pencarian utama: nexray. Tidak ada audio di tahap ini, audio
+    // di-resolve saat diputar lewat ?url=.
+    let nexrayFailed = false;
     try {
-      let searchUrl = '';
-      if (source === 'spotify') {
-        searchUrl = `${DELIRIUS_API}/search/spotify?q=${encodeURIComponent(q)}`;
-      } else {
-        searchUrl = `${DELIRIUS_API}/search/ytsearch?q=${encodeURIComponent(q)}`;
-      }
-      const searchRes = await axios.get(searchUrl, { timeout: 15_000 });
-      const searchData = searchRes.data;
-      if (searchData.data && searchData.data.length > 0) {
-        const result = searchData.data[index] || searchData.data[0];
-
-        const title = result.title || '';
-        let artist = '';
-        let coverUrl = '';
-        let url = '';
-        if (source === 'spotify') {
-          artist = result.artist || '';
-          url = result.url || '';
-          coverUrl = result.cover || '';
-        } else {
-          artist = result.author?.name || '';
-          url = result.url || '';
-          coverUrl = result.thumbnail || '';
-        }
-
-        let downloadUrl = '';
-        if (source === 'spotify') {
-          downloadUrl = `${DELIRIUS_API}/download/spotifydl?url=${encodeURIComponent(url)}`;
-        } else {
-          downloadUrl = `${DELIRIUS_API}/download/ytmp3?url=${encodeURIComponent(url)}`;
-        }
-        const downloadRes = await axios.get(downloadUrl, { timeout: 15_000 });
-        const audioUrl = downloadRes.data.data?.download || '';
-        if (audioUrl) {
-          return NextResponse.json({
-            title,
-            artist,
-            coverUrl,
-            url,
-            source,
-            audioUrl,
-          });
-        }
-        // Pencarian dapat, audio tidak: anggap Delirius gagal, lanjut ke cadangan.
-        deliriusFailed = true;
+      const tracks = await searchNexray(q);
+      if (tracks.length > 0) {
+        const track = tracks[index] || tracks[0];
+        return NextResponse.json({ ...track, source: 'spotify' });
       }
     } catch (error: unknown) {
-      console.error('Search error:', error instanceof Error ? error.message : error);
-      deliriusFailed = true;
+      console.error('Nexray search error:', error instanceof Error ? error.message : error);
+      nexrayFailed = true;
     }
 
     // Cadangan: iTunes, preview 30 detik.
@@ -175,10 +196,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Tidak ada hasil' }, { status: 404 });
       }
       const track = tracks[index] || tracks[0];
-      return NextResponse.json({ ...track, source: 'itunes' });
+      return NextResponse.json({ ...track, source: 'itunes', preview: true });
     } catch (error: unknown) {
       console.error('iTunes search error:', error instanceof Error ? error.message : error);
-      if (deliriusFailed) {
+      if (nexrayFailed) {
         return NextResponse.json(
           { error: 'Layanan musik tidak bisa dijangkau' },
           { status: 503 },

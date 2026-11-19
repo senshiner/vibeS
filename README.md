@@ -7,13 +7,14 @@ Web penenang universal. Siapa saja bisa masuk dan duduk sebentar.
 - **Beranda** — langit malam yang pelan: bintang berkelip, partikel cahaya
   melayang, dan cahaya yang mengembang seperti napas. Menghormati
   `prefers-reduced-motion`.
-- **Musik** — cari lagu (YouTube atau Spotify), putar, dan simpan ke favorit.
-  Favorit disimpan di browser sebagai metadata saja. Link audio tidak pernah
-  disimpan, karena bisa kedaluwarsa, jadi audio selalu diminta ulang saat
-  diputar. Kartu player ala tren foto Spotify: cover, judul, artis, progress
-  bar, dan tombol putar. Kalau layanan utama tidak bisa dijangkau, pencarian
-  memakai iTunes Search API sebagai cadangan dan memutar preview 30 detik
-  (ditandai "Preview 30 detik" di kartu).
+- **Musik** — cari lagu, putar, dan simpan ke favorit. Pencarian lewat
+  nexray (metadata + cover asli Spotify), audio lagu full lewat Delirius,
+  dan kalau Delirius tidak bisa dijangkau, diputar preview iTunes 30 detik
+  (ditandai "Preview 30 detik" di kartu). Favorit disimpan di browser
+  sebagai metadata saja. Link audio tidak pernah disimpan, karena bisa
+  kedaluwarsa, jadi audio selalu diminta ulang saat diputar. Kartu player
+  ala tren foto Spotify: cover, judul, artis, progress bar, dan tombol
+  putar.
 - **Photo Book** — halaman ala polaroid dari foto pengguna sendiri. Foto
   tampil mengikuti rasio aslinya, tidak pernah di-crop. Kartu musik di atas
   halaman bisa digeser dengan mouse maupun sentuhan, supaya pengguna sendiri
@@ -38,12 +39,11 @@ npm start       # jalankan hasil build
 ## Arsitektur
 
 - Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + Zustand.
-- `app/api/music/route.ts` — route server yang memanggil API Delirius
-  (tidak resmi) untuk mencari dan mengambil audio, sumber YouTube (default)
-  atau Spotify. Kalau Delirius gagal atau kosong, route memakai iTunes
-  Search API sebagai cadangan (preview 30 detik, cover 600x600) dan
-  membedakan layanan yang tidak bisa dijangkau (503) dari memang tidak ada
-  hasil (404).
+- `app/api/music/route.ts` — route server musik. Pencarian utama lewat
+  nexray Spotify search; cadangan terakhir iTunes Search API (preview 30
+  detik, cover 600x600). Audio lagu full lewat download Delirius, dan kalau
+  gagal, preview iTunes yang dicocokkan dari judul + artis. Route membedakan
+  layanan yang tidak bisa dijangkau (503) dari memang tidak ada hasil (404).
 - `lib/audio.ts` — satu elemen audio untuk seluruh aplikasi, jadi lagu terus
   berjalan saat pindah halaman.
 - `store/musicStore.ts` — favorit, persisten di localStorage
@@ -55,11 +55,10 @@ npm start       # jalankan hasil build
 
 ## Batasan yang jujur
 
-- **API musik tidak resmi.** Delirius bukan API resmi Spotify atau YouTube.
-  Layanan ini bisa berubah atau mati sewaktu-waktu. Kalau Delirius tidak
-  bisa dijangkau, pencarian memakai iTunes Search API dan memutar preview
-  30 detik. Kalau kedua layanan gagal, aplikasi menampilkan pesan yang
-  jelas, bukan diam.
+- **API musik tidak resmi.** Nexray dan Delirius bukan API resmi Spotify
+  atau YouTube. Layanan ini bisa berubah atau mati sewaktu-waktu. Kalau
+  Delirius tidak bisa dijangkau, diputar preview iTunes 30 detik. Kalau
+  semua layanan gagal, aplikasi menampilkan pesan yang jelas, bukan diam.
 - **Foto hanya ada di browser ini.** Tidak ada sinkronisasi antar perangkat,
   dan foto hilang kalau data situs dihapus.
 - **Teman itu scripted, bukan AI sungguhan.** Balasannya dari pola kata yang
