@@ -9,6 +9,8 @@ interface DraggableCardProps {
   onMove: (x: number, y: number) => void;
   onDragEnd: () => void;
   label: string;
+  /** Lebar kartu, default w-64. */
+  widthClass?: string;
   children: React.ReactNode;
 }
 
@@ -18,7 +20,7 @@ interface DraggableCardProps {
  * Posisi disimpan dalam persen, supaya tetap masuk akal saat layar
  * diputar atau ukurannya berubah.
  */
-export function DraggableCard({ x, y, onMove, onDragEnd, label, children }: DraggableCardProps) {
+export function DraggableCard({ x, y, onMove, onDragEnd, label, widthClass = 'w-64', children }: DraggableCardProps) {
   const dragRef = useRef<{
     pointerId: number;
     offsetX: number;
@@ -67,7 +69,7 @@ export function DraggableCard({ x, y, onMove, onDragEnd, label, children }: Drag
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className="absolute z-20 w-64 max-w-[80%] cursor-grab touch-none select-none active:cursor-grabbing"
+      className={`absolute z-20 ${widthClass} max-w-[80%] cursor-grab touch-none select-none active:cursor-grabbing`}
       style={{ left: `${x}%`, top: `${y}%` }}
     >
       {children}

@@ -12,7 +12,7 @@ import {
 } from '@/lib/photos';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { useMusicStore } from '@/store/musicStore';
-import { PlayerCard } from '@/components/PlayerCard';
+import { MiniPlayerCard } from '@/components/MiniPlayerCard';
 import { DraggableCard } from '@/components/DraggableCard';
 
 interface ViewPhoto extends StoredPhoto {
@@ -41,9 +41,6 @@ export function PhotoBook() {
 
   const player = useAudioPlayer();
   const favorites = useMusicStore((s) => s.favorites);
-  const isFavorite = useMusicStore((s) => s.isFavorite);
-  const addFavorite = useMusicStore((s) => s.addFavorite);
-  const removeFavorite = useMusicStore((s) => s.removeFavorite);
 
   const load = useCallback(async () => {
     try {
@@ -90,7 +87,7 @@ export function PhotoBook() {
           caption: '',
           createdAt: Date.now(),
           cardX: 8,
-          cardY: 8,
+          cardY: 72,
         });
       }
       await load();
@@ -128,22 +125,6 @@ export function PhotoBook() {
     await deletePhoto(current.id);
     setConfirmDelete(false);
     await load();
-  };
-
-  const currentIsFavorite = player.current ? isFavorite(player.current.id) : false;
-
-  const handleToggleCurrentFavorite = () => {
-    if (!player.current) return;
-    const fav = {
-      id: player.current.url,
-      title: player.current.title,
-      artist: player.current.artist,
-      coverUrl: player.current.coverUrl,
-      url: player.current.url,
-      source: player.current.source,
-    };
-    if (isFavorite(fav.id)) removeFavorite(fav.id);
-    else addFavorite(fav);
   };
 
   if (loading) {
@@ -217,28 +198,14 @@ export function PhotoBook() {
                 onMove={handleMoveCard}
                 onDragEnd={handleDragEnd}
                 label="Kartu musik, geser untuk memindahkan"
+                widthClass="w-60"
               >
-                <div className="rounded-2xl border border-white/10 bg-[#0c1a2a]/90 p-3 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-md">
-                  <p className="mb-2 text-center text-[11px] tracking-wide text-[#a7b8c4]">
-                    Geser kartu ini
-                  </p>
-                  <PlayerCard
-                    compact
-                    track={player.current}
-                    isPlaying={player.isPlaying}
-                    progress={player.progress}
-                    duration={player.duration}
-                    loading={player.loading}
-                    error={player.error}
-                    isFavorite={currentIsFavorite}
-                    hasNext={player.hasNext}
-                    onToggle={player.toggle}
-                    onNext={player.next}
-                    onPrev={player.prev}
-                    onSeek={player.seek}
-                    onToggleFavorite={handleToggleCurrentFavorite}
-                  />
-                </div>
+                <MiniPlayerCard
+                  track={player.current}
+                  isPlaying={player.isPlaying}
+                  loading={player.loading}
+                  onToggle={player.toggle}
+                />
               </DraggableCard>
             </div>
 

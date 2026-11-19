@@ -18,7 +18,6 @@ interface PlayerCardProps {
   onPrev: () => void;
   onSeek: (seconds: number) => void;
   onToggleFavorite: () => void;
-  compact?: boolean;
 }
 
 /**
@@ -40,7 +39,6 @@ export function PlayerCard({
   onPrev,
   onSeek,
   onToggleFavorite,
-  compact = false,
 }: PlayerCardProps) {
   // Cover yang pernah gagal dimuat diingat dari URL-nya, jadi kartu tidak
   // perlu efek untuk mereset state saat lagu berganti.
@@ -55,8 +53,6 @@ export function PlayerCard({
     onSeek(Math.max(0, Math.min(duration, next)));
   };
 
-  const coverSize = compact ? 'h-16 w-16' : 'h-28 w-28';
-
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.07] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-md">
       {!track ? (
@@ -67,7 +63,7 @@ export function PlayerCard({
         <div>
           <div className="flex gap-4">
             <div
-              className={`${coverSize} shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#93b8a4,#2c4a5a)]`}
+              className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#93b8a4,#2c4a5a)]"
             >
               {track.coverUrl && track.coverUrl !== failedCoverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
