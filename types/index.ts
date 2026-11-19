@@ -7,8 +7,3 @@ export interface MusicTrack {
   source: 'youtube' | 'spotify';
   audioUrl?: string;    // hasil download (akan diisi saat diputar)
 }
-
-export interface UserData {
-  photoUrl: string | null;
-  wish: string;
-}
