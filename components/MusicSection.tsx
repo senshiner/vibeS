@@ -6,15 +6,16 @@ import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { PlayerCard } from '@/components/PlayerCard';
 import type { FavoriteTrack, MusicTrack } from '@/types';
 
-type Source = 'youtube' | 'spotify';
+type Source = 'youtube' | 'spotify' | 'itunes';
 
 interface SearchResult {
   title: string;
   artist: string;
   coverUrl: string;
   url: string;
-  source: 'youtube' | 'spotify' | 'itunes';
-  audioUrl: string;
+  source: Source;
+  audioUrl?: string;
+  preview?: boolean;
 }
 
 function toFavorite(track: MusicTrack | FavoriteTrack): FavoriteTrack {
@@ -63,7 +64,6 @@ export function MusicSection() {
   const player = useAudioPlayer();
 
   const [query, setQuery] = useState('');
-  const [source, setSource] = useState<Source>('youtube');
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [results, setResults] = useState<MusicTrack[]>([]);
@@ -84,7 +84,7 @@ export function MusicSection() {
         [0, 1, 2, 3, 4].map(async (index): Promise<MusicTrack | null> => {
           try {
             const res = await fetch(
-              `/api/music?q=${encodeURIComponent(q)}&source=${source}&index=${index}`,
+              `/api/music?q=${encodeURIComponent(q)}&index=${index}`,
             );
             if (res.status >= 500) {
               sawUnreachable = true;
@@ -101,6 +101,7 @@ export function MusicSection() {
               url: data.url,
               source: data.source,
               audioUrl: data.audioUrl,
+              preview: data.preview ?? false,
             } satisfies MusicTrack;
           } catch {
             sawUnreachable = true;
@@ -176,24 +177,6 @@ export function MusicSection() {
           >
             {searching ? 'Mencari...' : 'Cari'}
           </button>
-        </div>
-        <div className="mt-3 flex items-center gap-2 text-xs text-[#a7b8c4]">
-          <span>Sumber:</span>
-          {(['youtube', 'spotify'] as Source[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSource(s)}
-              aria-pressed={source === s}
-              className={`rounded-full border px-3 py-1 capitalize transition ${
-                source === s
-                  ? 'border-[#93b8a4] bg-[#93b8a4]/20 text-[#ece7db]'
-                  : 'border-white/15 text-[#a7b8c4] hover:border-white/30'
-              }`}
-            >
-              {s === 'youtube' ? 'YouTube' : 'Spotify'}
-            </button>
-          ))}
         </div>
         {searchError && <p className="mt-3 text-sm text-[#e8a598]">{searchError}</p>}
       </section>

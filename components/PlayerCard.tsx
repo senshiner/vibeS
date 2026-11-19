@@ -87,7 +87,7 @@ export function PlayerCard({
               <p className="truncate text-base font-medium text-[#ece7db]">{track.title}</p>
               <p className="mt-1 truncate text-sm text-[#a7b8c4]">{track.artist || 'Artis tidak diketahui'}</p>
               <p className="mt-2 text-xs text-[#a7b8c4]/70">
-                {track.source === 'itunes'
+                {track.source === 'itunes' || track.preview
                   ? 'Preview 30 detik'
                   : track.source === 'youtube'
                     ? 'YouTube'
