@@ -25,13 +25,28 @@ export interface FavoriteTrack {
   preview?: boolean; // diisi saat diputar, tidak pernah disimpan
 }
 
+/** Penempatan satu kartu musik di halaman photo book, satu per lagu. */
+export interface PhotoCardPlacement {
+  /** id lagu (url sumber), sama dengan FavoriteTrack.id. */
+  trackId: string;
+  /** Posisi dalam persen dari ukuran halaman. */
+  x: number;
+  y: number;
+  /** Kemiringan kartu dalam derajat, untuk kesan 3D seperti kartu Spotify. */
+  tilt: number;
+}
+
 export interface PhotoItem {
   id: string;
   caption: string;
   createdAt: number;
-  /** Posisi kartu musik di halaman, dalam persen dari ukuran halaman. */
-  cardX: number;
-  cardY: number;
+  /**
+   * Penempatan kartu musik di halaman, satu per lagu.
+   * Foto lama tanpa `cards` memakai posisi default baru (bawah):
+   * posisi lama (atas, satu kartu) adalah yang dikeluhkan,
+   * jadi tidak dipertahankan.
+   */
+  cards?: PhotoCardPlacement[];
 }
 
 export type CompanionRole = 'user' | 'companion' | 'crisis';

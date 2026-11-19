@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   deletePhoto,
   downscaleImage,
@@ -10,6 +10,8 @@ import {
   updatePhoto,
   type StoredPhoto,
 } from '@/lib/photos';
+import type { PhotoCardPlacement } from '@/types';
+import type { PlayableTrack } from '@/lib/audio';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { useMusicStore } from '@/store/musicStore';
 import { MiniPlayerCard } from '@/components/MiniPlayerCard';
@@ -20,14 +22,40 @@ interface ViewPhoto extends StoredPhoto {
 }
 
 /**
+ * Posisi default kartu ke-i: kartu pertama di bawah, sisanya
+ * tersusun miring di atasnya dan di langit-langit foto, seperti
+ * tumpukan kartu Spotify. Posisi yang sudah digeser pengguna
+ * selalu menang atas default ini.
+ */
+const DEFAULT_PLACEMENTS = [
+  { x: 8, y: 72, tilt: -2 },
+  { x: 8, y: 6, tilt: 2.5 },
+  { x: 8, y: 58, tilt: 1.5 },
+];
+
+function placementFor(
+  saved: PhotoCardPlacement[] | undefined,
+  trackId: string,
+  index: number,
+): PhotoCardPlacement {
+  const found = saved?.find((c) => c.trackId === trackId);
+  if (found) return found;
+  const d = DEFAULT_PLACEMENTS[index % DEFAULT_PLACEMENTS.length];
+  return { trackId, ...d };
+}
+
+/**
  * Photo book: halaman ala polaroid dari foto pengguna sendiri.
  *
  * - Foto diunggah dari perangkat, dikecilkan, lalu disimpan di
  *   IndexedDB browser ini. Tidak ada foto contoh, tidak ada foto
  *   yang dikirim ke server.
  * - Foto tampil mengikuti rasio aslinya, tidak pernah di-crop.
- * - Kartu musik di atas halaman bisa digeser, supaya pengguna
- *   sendiri yang menaruhnya di tempat yang tidak menutupi subjek.
+ * - Satu foto bisa menampilkan beberapa kartu musik (satu per lagu,
+ *   maksimal 3), masing-masing miring sedikit dengan bayangan dalam,
+ *   seperti kartu Spotify di tren foto Spotify. Setiap kartu bisa
+ *   digeser, supaya pengguna sendiri yang menaruhnya di tempat
+ *   yang tidak menutupi subjek.
  */
 export function PhotoBook() {
   const [photos, setPhotos] = useState<ViewPhoto[]>([]);
@@ -41,6 +69,13 @@ export function PhotoBook() {
 
   const player = useAudioPlayer();
   const favorites = useMusicStore((s) => s.favorites);
+
+  // Salinan foto terbaru untuk handleDragEnd, supaya posisi yang
+  // disimpan adalah posisi setelah drag terakhir, bukan render lama.
+  const photosRef = useRef<ViewPhoto[]>([]);
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
 
   const load = useCallback(async () => {
     try {
@@ -73,6 +108,25 @@ export function PhotoBook() {
   const safeIndex = Math.min(index, Math.max(0, photos.length - 1));
   const current = photos[safeIndex] ?? null;
 
+  // Lagu yang ditampilkan: favorit dulu (urutan stabil), lalu lagu yang
+  // sedang diputar kalau belum jadi favorit. Maksimal 3 kartu supaya
+  // foto tetap kebaca.
+  const currentTrack = player.current;
+  const displayTracks = useMemo(() => {
+    const list: PlayableTrack[] = [...favorites];
+    if (currentTrack && !list.some((t) => t.id === currentTrack.id)) {
+      list.push(currentTrack);
+    }
+    return list.slice(0, 3);
+  }, [favorites, currentTrack]);
+
+  const displayCards = current
+    ? displayTracks.map((track, i) => ({
+        track,
+        placement: placementFor(current.cards, track.id, i),
+      }))
+    : [];
+
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploading(true);
@@ -86,8 +140,6 @@ export function PhotoBook() {
           blob,
           caption: '',
           createdAt: Date.now(),
-          cardX: 8,
-          cardY: 72,
         });
       }
       await load();
@@ -100,14 +152,25 @@ export function PhotoBook() {
     }
   };
 
-  const handleMoveCard = (x: number, y: number) => {
+  const handleMoveCard = (trackId: string, x: number, y: number, tilt: number) => {
     if (!current) return;
-    setPhotos((prev) => prev.map((p) => (p.id === current.id ? { ...p, cardX: x, cardY: y } : p)));
+    setPhotos((prev) =>
+      prev.map((p) => {
+        if (p.id !== current.id) return p;
+        const saved = p.cards ?? [];
+        const existing = saved.find((c) => c.trackId === trackId);
+        const cards = existing
+          ? saved.map((c) => (c.trackId === trackId ? { ...c, x, y } : c))
+          : [...saved, { trackId, x, y, tilt }];
+        return { ...p, cards };
+      }),
+    );
   };
 
   const handleDragEnd = () => {
     if (!current) return;
-    void updatePhoto(current.id, { cardX: current.cardX, cardY: current.cardY });
+    const photo = photosRef.current.find((p) => p.id === current.id);
+    if (photo) void updatePhoto(photo.id, { cards: photo.cards ?? [] });
   };
 
   const handleCaption = (caption: string) => {
@@ -192,21 +255,28 @@ export function PhotoBook() {
                 />
               </div>
 
-              <DraggableCard
-                x={current.cardX}
-                y={current.cardY}
-                onMove={handleMoveCard}
-                onDragEnd={handleDragEnd}
-                label="Kartu musik, geser untuk memindahkan"
-                widthClass="w-60"
-              >
-                <MiniPlayerCard
-                  track={player.current}
-                  isPlaying={player.isPlaying}
-                  loading={player.loading}
-                  onToggle={player.toggle}
-                />
-              </DraggableCard>
+              {displayCards.map(({ track, placement }) => (
+                <DraggableCard
+                  key={track.id}
+                  x={placement.x}
+                  y={placement.y}
+                  tilt={placement.tilt}
+                  onMove={(x, y) => handleMoveCard(track.id, x, y, placement.tilt)}
+                  onDragEnd={handleDragEnd}
+                  label={`Kartu musik ${track.title}, geser untuk memindahkan`}
+                  widthClass="w-60"
+                >
+                  <MiniPlayerCard
+                    track={track}
+                    isPlaying={player.isPlaying && player.current?.id === track.id}
+                    loading={player.loading && player.current?.id === track.id}
+                    onToggle={() => {
+                      if (player.current?.id === track.id) player.toggle();
+                      else void player.play(track);
+                    }}
+                  />
+                </DraggableCard>
+              ))}
             </div>
 
             <div className="mt-6 flex items-center justify-center gap-4">
@@ -250,7 +320,7 @@ export function PhotoBook() {
               </button>
             </div>
 
-            {favorites.length === 0 && (
+            {displayCards.length === 0 && (
               <p className="mt-4 text-center text-xs leading-relaxed text-[#a7b8c4]">
                 Pilih lagu dulu di halaman Musik.
               </p>

@@ -11,6 +11,8 @@ interface DraggableCardProps {
   label: string;
   /** Lebar kartu, default w-64. */
   widthClass?: string;
+  /** Kemiringan kartu dalam derajat, untuk kesan 3D seperti kartu Spotify. */
+  tilt?: number;
   children: React.ReactNode;
 }
 
@@ -20,7 +22,7 @@ interface DraggableCardProps {
  * Posisi disimpan dalam persen, supaya tetap masuk akal saat layar
  * diputar atau ukurannya berubah.
  */
-export function DraggableCard({ x, y, onMove, onDragEnd, label, widthClass = 'w-64', children }: DraggableCardProps) {
+export function DraggableCard({ x, y, onMove, onDragEnd, label, widthClass = 'w-64', tilt = 0, children }: DraggableCardProps) {
   const dragRef = useRef<{
     pointerId: number;
     offsetX: number;
@@ -70,7 +72,7 @@ export function DraggableCard({ x, y, onMove, onDragEnd, label, widthClass = 'w-
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       className={`absolute z-20 ${widthClass} max-w-[80%] cursor-grab touch-none select-none active:cursor-grabbing`}
-      style={{ left: `${x}%`, top: `${y}%` }}
+      style={{ left: `${x}%`, top: `${y}%`, transform: `rotate(${tilt}deg)` }}
     >
       {children}
     </div>
