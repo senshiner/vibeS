@@ -65,8 +65,8 @@ const PATTERNS: Pattern[] = [
     match: /^(halo|hai|hei|selamat (pagi|siang|sore|malam)|pagi|siang|sore|malam)\b/,
     suggestion: null,
     replies: [
-      'Halo, senang kamu mampir. Di sini tempatnya pelan-pelan saja. Cerita sedikit, apa yang sedang kamu rasakan hari ini?',
-      'Halo. Aku di sini untuk mendengarkan. Tidak ada jawaban yang salah, cerita saja semaumu.',
+      'Halo. Cerita aja, pelan-pelan.',
+      'Halo, aku dengerin.',
     ],
   },
   {
@@ -74,8 +74,8 @@ const PATTERNS: Pattern[] = [
     match: /sedih|kecewa|patah hati|nangis|menangis|galau|hampa|murung|sedih banget/,
     suggestion: 'music',
     replies: [
-      'Kedengarannya harimu sedang berat. Wajar merasa sedih, tidak perlu buru-buru menghilangkannya. Mau duduk sebentar dengan satu lagu favoritmu?',
-      'Aku dengar kamu. Sedih itu bukan kelemahan, itu tanda kamu peduli. Kalau mau, putar lagu yang menenangkan, atau buka foto yang bikin kamu sedikit lega.',
+      'Aku dengerin. Hari ini berat ya?',
+      'Sini, cerita aja. Aku dengerin.',
     ],
   },
   {
@@ -83,8 +83,8 @@ const PATTERNS: Pattern[] = [
     match: /cemas|khawatir|takut|panik|gelisah|deg-degan|overthinking|banyak pikiran|was-was/,
     suggestion: 'breathing',
     replies: [
-      'Pikiran yang berputar-putar itu melelahkan. Coba kita pelankan dulu napasnya bersama, satu tarikan, satu buangan. Aku yang pandu.',
-      'Aku paham rasanya. Saat cemas, tubuh ikut tegang. Latihan napas sebentar bisa membantu. Mau coba empat putaran saja?',
+      'Tarik napas dulu, bareng aku.',
+      'Pelan-pelan. Kita napas bareng.',
     ],
   },
   {
@@ -92,8 +92,8 @@ const PATTERNS: Pattern[] = [
     match: /marah|kesal|kesel|jengkel|benci|sebal|dongkol/,
     suggestion: 'breathing',
     replies: [
-      'Wajar kamu marah, pasti ada alasannya. Tidak apa-apa merasakannya. Kalau mau, tarik napas dulu bersamaku, baru cerita apa yang terjadi.',
-      'Aku dengar kamu. Marah itu sinyal bahwa ada sesuatu yang penting buatmu. Cerita saja, aku tidak menghakimi.',
+      'Wajar marah. Ceritain aja.',
+      'Aku dengerin, nggak menghakimi.',
     ],
   },
   {
@@ -101,8 +101,8 @@ const PATTERNS: Pattern[] = [
     match: /lelah|capek|stres|stress|penat|burnout|jenuh|letih|capek banget/,
     suggestion: 'breathing',
     replies: [
-      'Kamu sudah berusaha banyak hari ini. Istirahat itu bukan berhenti, itu bagian dari jalan. Mau latihan napas sebentar, lalu lanjut istirahat?',
-      'Kedengarannya tenagamu sudah menipis. Tidak apa-apa memperlambat. Duduk sebentar, tarik napas, dan biarkan dirimu beristirahat.',
+      'Kamu pasti capek banget. Istirahat dulu.',
+      'Udah cukup hari ini. Duduk dulu.',
     ],
   },
   {
@@ -110,8 +110,8 @@ const PATTERNS: Pattern[] = [
     match: /sendiri|kesepian|sepi|sendirian|tidak ada yang|nggak ada yang|gak ada yang/,
     suggestion: 'photo',
     replies: [
-      'Kesepian itu berat, apalagi saat semua terasa jauh. Kamu tidak sendirian di sini. Kalau mau, buka photo book dan lihat foto orang atau momen yang kamu sayang.',
-      'Aku di sini menemanimu. Kadang melihat kembali momen hangat, walau hanya dari foto, bisa sedikit meringankan. Mau coba?',
+      'Aku di sini. Kamu nggak sendiri.',
+      'Sini, aku temenin.',
     ],
   },
   {
@@ -119,8 +119,8 @@ const PATTERNS: Pattern[] = [
     match: /gagal|tidak bisa|nggak bisa|gak bisa|bodoh|tidak berguna|menyerah|tidak ada gunanya/,
     suggestion: 'music',
     replies: [
-      'Satu kegagalan tidak menghapus semua usahamu. Kamu masih di sini, masih mencoba, dan itu sudah berarti. Cerita sedikit, apa yang tidak berjalan seperti harapanmu?',
-      'Aku paham perasaan itu. Tapi nilai kamu tidak ditentukan satu hari yang buruk. Kalau mau, istirahat dulu dengan lagu favoritmu, lalu kita lihat lagi pelan-pelan.',
+      'Gagal sekali bukan berarti kamu gagal.',
+      'Nggak apa-apa. Istirahat dulu.',
     ],
   },
   {
@@ -128,8 +128,8 @@ const PATTERNS: Pattern[] = [
     match: /susah tidur|tidak bisa tidur|insomnia|nggak bisa tidur|gak bisa tidur|begadang/,
     suggestion: 'breathing',
     replies: [
-      'Susah tidur itu menyebalkan, apalagi kalau pikiran tidak mau diam. Coba latihan napas beberapa putaran, dengan cahaya redup dan lagu yang pelan. Mau aku pandu?',
-      'Malam memang suka membesarkan semua pikiran. Tarik napas yang panjang dan pelan, buang pelan-pelan. Kita lakukan empat putaran bersama.',
+      'Pikiran lagi rame ya? Napas bareng yuk.',
+      'Coba napas dulu, pelan-pelan.',
     ],
   },
   {
@@ -137,16 +137,16 @@ const PATTERNS: Pattern[] = [
     match: /makasih|terima kasih|thanks|thank you|terimakasih/,
     suggestion: null,
     replies: [
-      'Sama-sama. Aku senang bisa menemani. Kalau nanti butuh lagi, aku ada di sini.',
-      'Dengan senang hati. Jaga dirimu baik-baik, ya.',
+      'Sama-sama.',
+      'Senang bisa nemenin.',
     ],
   },
 ];
 
 const FALLBACK_REPLIES = [
-  'Aku dengar kamu. Cerita sedikit lagi, apa yang paling terasa berat sekarang?',
-  'Terima kasih sudah berbagi. Aku di sini, tidak ke mana-mana. Mau cerita lebih lanjut, atau istirahat dulu dengan napas atau lagu?',
-  'Kedengarannya itu tidak mudah. Tidak apa-apa merasa seperti itu. Kalau mau, kita bisa coba latihan napas sebentar.',
+  'Aku dengerin. Cerita lagi?',
+  'Terus, gimana lagi?',
+  'Hmm. Cerita aja terus.',
 ];
 
 export interface CompanionReply {

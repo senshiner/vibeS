@@ -21,7 +21,7 @@ const QUICK_PROMPTS = [
 const GREETING: CompanionMessage = {
   id: 'greeting',
   role: 'companion',
-  text: 'Halo, aku Teman. Aku di sini untuk mendengarkan, pelan-pelan saja. Cerita apa yang sedang kamu rasakan, atau pilih salah satu di bawah kalau bingung mulai dari mana.',
+  text: 'Halo, aku Teman. Cerita aja, pelan-pelan.',
 };
 
 /**
@@ -79,9 +79,9 @@ export function Companion({ onPlayFavorite, onOpenPhotos }: CompanionProps) {
   };
 
   const suggestionLabel: Record<CompanionSuggestion, string> = {
-    breathing: 'Mulai latihan napas',
-    music: 'Putar lagu favorit',
-    photo: 'Buka photo book',
+    breathing: 'Latihan napas',
+    music: 'Putar lagu',
+    photo: 'Buka foto',
   };
 
   return (
@@ -89,8 +89,7 @@ export function Companion({ onPlayFavorite, onOpenPhotos }: CompanionProps) {
       <header>
         <h1 className="text-2xl font-light tracking-wide text-[#ece7db]">Teman</h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#a7b8c4]">
-          Pendamping untuk saat harimu terasa berat. Aku bukan terapis atau tenaga medis,
-          tapi aku bisa mendengarkan. Percakapan ini tidak disimpan.
+          Aku bukan terapis. Aku di sini buat dengerin, dan obrolan ini tidak disimpan.
         </p>
         <button
           type="button"

@@ -66,7 +66,7 @@ export function BreathingExercise() {
     <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 text-center backdrop-blur-md">
       <h3 className="text-base font-medium text-[#ece7db]">Latihan napas</h3>
       <p className="mt-1 text-xs leading-relaxed text-[#a7b8c4]">
-        Tarik 4 detik, tahan 4 detik, buang 6 detik. Empat putaran.
+        Tarik 4, tahan 4, buang 6. Empat putaran.
       </p>
 
       <div className="mx-auto mt-6 flex h-40 w-40 items-center justify-center">
@@ -88,10 +88,10 @@ export function BreathingExercise() {
       </p>
       <p className="mt-1 text-xs text-[#a7b8c4]">
         {done
-          ? 'Empat putaran selesai. Bagaimana rasanya?'
+          ? 'Selesai. Gimana rasanya?'
           : running
             ? `Putaran ${cycle} dari ${BREATH_CYCLES}`
-            : 'Tidak ada yang perlu dikejar. Mulai saat kamu siap.'}
+            : 'Mulai kalau udah siap.'}
       </p>
 
       <div className="mt-5 flex justify-center gap-3">

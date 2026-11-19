@@ -22,17 +22,17 @@ const CARDS: Array<{ view: View; title: string; text: string }> = [
   {
     view: 'musik',
     title: 'Musik',
-    text: 'Cari lagu yang menenangkan dan simpan yang kamu suka ke favorit.',
+    text: 'Cari dan simpan lagu.',
   },
   {
     view: 'foto',
     title: 'Photo Book',
-    text: 'Halaman polaroid dari fotomu sendiri, dengan kartu musik yang bisa digeser.',
+    text: 'Foto-fotomu.',
   },
   {
     view: 'teman',
     title: 'Teman',
-    text: 'Pendamping yang mendengarkan saat harimu terasa berat, plus latihan napas.',
+    text: 'Cerita, pelan-pelan.',
   },
 ];
 
@@ -83,14 +83,9 @@ export default function Home() {
         <main className="mt-10 flex-1 sm:mt-14">
           {view === 'beranda' && (
             <div className="animate-fade-up">
-              <p className="text-xs tracking-[0.25em] text-[#93b8a4]">TENANG, PELAN, UNTUK SIAPA SAJA</p>
               <h1 className="mt-4 max-w-xl text-4xl font-light leading-snug text-[#ece7db] sm:text-5xl">
                 Ruang tenang untuk siapa saja.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-[#a7b8c4]">
-                Tidak ada yang perlu dikejar di sini. Duduk sebentar, dengarkan lagu
-                favoritmu, buka foto yang kamu sayang, atau cerita ke Teman.
-              </p>
 
               <div className="mt-12 grid gap-4 sm:grid-cols-3">
                 {CARDS.map((card) => (
@@ -108,8 +103,7 @@ export default function Home() {
               </div>
 
               <p className="mt-12 max-w-xl text-xs leading-relaxed text-[#a7b8c4]/80">
-                vibeS menyimpan favorit lagu dan fotomu di browser ini saja. Tidak ada
-                akun, tidak ada yang diunggah ke server.
+                Favorit dan foto tersimpan di browser ini saja.
               </p>
             </div>
           )}

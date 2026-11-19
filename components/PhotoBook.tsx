@@ -58,7 +58,7 @@ export function PhotoBook() {
         }),
       );
     } catch {
-      setError('Foto tidak bisa dimuat. Penyimpanan browser mungkin tidak tersedia.');
+      setError('Foto tidak bisa dimuat.');
     } finally {
       setLoading(false);
     }
@@ -155,8 +155,7 @@ export function PhotoBook() {
       <header>
         <h1 className="text-2xl font-light tracking-wide text-[#ece7db]">Photo Book</h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#a7b8c4]">
-          Halaman dari fotomu sendiri. Unggah foto, beri caption kalau mau, lalu geser
-          kartu musiknya ke tempat yang paling pas.
+          Unggah foto, geser kartu musiknya.
         </p>
       </header>
 
@@ -178,7 +177,7 @@ export function PhotoBook() {
           {uploading ? 'Mengunggah...' : 'Unggah foto'}
         </button>
         <p className="text-xs leading-relaxed text-[#a7b8c4]">
-          Foto disimpan di browser ini saja, tidak diunggah ke server.
+          Foto hanya di browser ini.
         </p>
       </div>
 
@@ -187,7 +186,7 @@ export function PhotoBook() {
       {photos.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-white/15 p-10 text-center">
           <p className="text-sm leading-relaxed text-[#a7b8c4]">
-            Belum ada foto. Unggah fotomu sendiri untuk membuka halaman pertama.
+            Belum ada foto. Unggah dulu.
           </p>
         </div>
       ) : (
@@ -221,7 +220,7 @@ export function PhotoBook() {
               >
                 <div className="rounded-2xl border border-white/10 bg-[#0c1a2a]/90 p-3 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-md">
                   <p className="mb-2 text-center text-[11px] tracking-wide text-[#a7b8c4]">
-                    Geser kartu ini ke tempat yang pas
+                    Geser kartu ini
                   </p>
                   <PlayerCard
                     compact
@@ -286,7 +285,7 @@ export function PhotoBook() {
 
             {favorites.length === 0 && (
               <p className="mt-4 text-center text-xs leading-relaxed text-[#a7b8c4]">
-                Kartu musik di atas akan memutar lagu setelah kamu memilih lagu di halaman Musik.
+                Pilih lagu dulu di halaman Musik.
               </p>
             )}
           </div>

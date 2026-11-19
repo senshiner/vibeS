@@ -84,11 +84,16 @@ class AudioController {
 
   /**
    * Minta link audio segar ke /api/music. Coba sumber asli lagu dulu,
-   * lalu sumber satunya sebagai cadangan.
+   * lalu sumber satunya sebagai cadangan. Lagu preview iTunes hanya
+   * punya satu sumber: lookup iTunes.
    */
   private async resolveAudioUrl(track: PlayableTrack): Promise<string | null> {
-    const sources: Array<'youtube' | 'spotify'> =
-      track.source === 'spotify' ? ['spotify', 'youtube'] : ['youtube', 'spotify'];
+    const sources: Array<'youtube' | 'spotify' | 'itunes'> =
+      track.source === 'spotify'
+        ? ['spotify', 'youtube']
+        : track.source === 'itunes'
+          ? ['itunes']
+          : ['youtube', 'spotify'];
     for (const source of sources) {
       try {
         const res = await fetch(
