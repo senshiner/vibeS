@@ -1,26 +1,35 @@
 import { create } from 'zustand';
-import { MusicTrack } from '@/types';
+import { persist } from 'zustand/middleware';
+import type { FavoriteTrack } from '@/types';
 
 interface MusicState {
-  customTracks: MusicTrack[];
-  selectedTrackId: string | null;
-  addTrack: (track: MusicTrack) => void;
-  removeTrack: (id: string) => void;
-  setSelectedTrack: (id: string) => void;
+  favorites: FavoriteTrack[];
+  addFavorite: (track: FavoriteTrack) => void;
+  removeFavorite: (id: string) => void;
+  isFavorite: (id: string) => boolean;
 }
 
-export const useMusicStore = create<MusicState>((set) => ({
-  customTracks: [],
-  selectedTrackId: null,
-  addTrack: (track) =>
-    set((state) => {
-      if (state.customTracks.length >= 3) return state;
-      return { customTracks: [...state.customTracks, track] };
+/**
+ * Favorit disimpan di localStorage (kunci vibes:favorites:v1).
+ * Yang disimpan hanya metadata lagu (judul, artis, cover, link).
+ * Link audio tidak pernah disimpan, karena bisa kedaluwarsa.
+ */
+export const useMusicStore = create<MusicState>()(
+  persist(
+    (set, get) => ({
+      favorites: [],
+      addFavorite: (track) =>
+        set((state) => {
+          if (state.favorites.some((f) => f.id === track.id)) return state;
+          return { favorites: [...state.favorites, track] };
+        }),
+      removeFavorite: (id) =>
+        set((state) => ({ favorites: state.favorites.filter((f) => f.id !== id) })),
+      isFavorite: (id) => get().favorites.some((f) => f.id === id),
     }),
-  removeTrack: (id) =>
-    set((state) => ({
-      customTracks: state.customTracks.filter((t) => t.id !== id),
-      selectedTrackId: state.selectedTrackId === id ? null : state.selectedTrackId,
-    })),
-  setSelectedTrack: (id) => set({ selectedTrackId: id }),
-}));
+    {
+      name: 'vibes:favorites:v1',
+      partialize: (state) => ({ favorites: state.favorites }),
+    },
+  ),
+);
