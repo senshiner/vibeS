@@ -29,7 +29,7 @@ export function MiniPlayerCard({ track, isPlaying, loading, onToggle }: MiniPlay
       : track?.title;
 
   return (
-    <div className="flex w-full items-center gap-2.5 rounded-2xl border border-white/10 bg-[#0c1a2a]/90 p-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-md">
+    <div className="flex w-full items-center gap-2.5 rounded-2xl border border-white/10 bg-[#0c1a2a]/90 p-2.5 shadow-[0_24px_60px_rgba(0,0,0,0.6)] backdrop-blur-md">
       <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-[linear-gradient(135deg,#93b8a4,#2c4a5a)]">
         {track && track.coverUrl && track.coverUrl !== failedCoverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
